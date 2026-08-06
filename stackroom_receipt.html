@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stack Room - Order Receipt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#120d1a;--bg3:#1f1530;--gold:#c9a84c;--text:#f0eaf8;--muted:#a090c0;--border:rgba(201,168,76,0.2);--red:#c0392b;}
+body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-weight:300;min-height:100vh;}
+.app{display:grid;grid-template-columns:1fr 420px;min-height:100vh;}
+.left{padding:32px;border-right:1px solid var(--border);overflow-y:auto;}
+.panel-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--gold);margin-bottom:4px;}
+.panel-sub{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:28px;}
+.section{margin-bottom:28px;}
+.section-label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row.single{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.field input,.field select,.field textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'Jost',sans-serif;font-size:14px;font-weight:300;outline:none;border-radius:0;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);}
+.field select option{background:var(--bg3);}
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.product-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:14px 10px;cursor:pointer;text-align:center;font-family:'Jost',sans-serif;}
+.product-btn:hover{border-color:var(--gold);}
+.p-icon{font-size:24px;margin-bottom:6px;}
+.p-name{font-size:11px;font-weight:500;line-height:1.3;margin-bottom:4px;}
+.p-price{font-size:12px;color:var(--gold);font-weight:600;}
+.cart-item{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);margin-bottom:8px;}
+.cart-item-name{font-size:13px;font-weight:500;}
+.cart-item-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.qty-controls{display:flex;align-items:center;gap:8px;}
+.qty-btn{width:28px;height:28px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{border-color:var(--gold);color:var(--gold);}
+.qty-num{font-size:14px;font-weight:600;min-width:20px;text-align:center;}
+.item-total{font-size:14px;font-weight:600;color:var(--gold);min-width:80px;text-align:right;}
+.remove-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px;}
+.custom-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px;}
+.btn{padding:12px 20px;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:500;cursor:pointer;border:none;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-full{width:100%;margin-top:8px;padding:14px;}
+.empty-cart{text-align:center;padding:32px;color:var(--muted);font-size:14px;border:1px dashed var(--border);}
+.right{background:#fff;overflow-y:auto;}
+.success-bar{display:none;background:#1a7a4a;color:#fff;text-align:center;padding:14px;font-size:14px;font-weight:500;}
+.success-bar.show{display:block;}
+.receipt{max-width:420px;margin:0 auto;padding:40px 32px;font-family:'Jost',sans-serif;color:#1a1a2e;min-height:100vh;}
+.receipt-header{text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #6b3fa0;}
+.receipt-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#6b3fa0;letter-spacing:4px;text-transform:uppercase;margin-bottom:4px;}
+.receipt-logo span{color:#c9a84c;}
+.receipt-tagline{font-size:10px;letter-spacing:3px;color:#9b6dd4;text-transform:uppercase;margin-bottom:12px;}
+.receipt-badge{display:inline-block;background:#6b3fa0;color:#fff;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:6px 20px;margin-bottom:8px;}
+.receipt-congrats{font-size:13px;color:#4a4a6a;margin-bottom:4px;}
+.receipt-order-id{font-size:11px;color:#9b6dd4;letter-spacing:1px;}
+.receipt-section{margin-bottom:20px;}
+.receipt-section-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#6b3fa0;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e8e0f0;}
+.receipt-info-row{display:flex;justify-content:space-between;margin-bottom:6px;}
+.receipt-info-label{font-size:12px;color:#7a7a9a;}
+.receipt-info-value{font-size:12px;color:#1a1a2e;font-weight:500;text-align:right;max-width:60%;}
+.receipt-table{width:100%;border-collapse:collapse;}
+.receipt-table thead tr{background:#6b3fa0;}
+.receipt-table thead th{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#fff;padding:8px 10px;text-align:left;font-weight:500;}
+.receipt-table thead th:last-child{text-align:right;}
+.receipt-table tbody tr:nth-child(even){background:#f8f4ff;}
+.receipt-table tbody td{font-size:12px;padding:9px 10px;color:#1a1a2e;border-bottom:1px solid #ede8f8;vertical-align:top;}
+.receipt-table tbody td:last-child{text-align:right;font-weight:500;color:#6b3fa0;}
+.td-name{font-weight:500;}
+.td-sub{font-size:10px;color:#9b9bbb;margin-top:2px;}
+.receipt-totals{border-top:2px solid #6b3fa0;padding-top:12px;}
+.receipt-total-row{display:flex;justify-content:space-between;margin-bottom:6px;}
+.receipt-total-label{font-size:12px;color:#7a7a9a;}
+.receipt-total-value{font-size:12px;color:#1a1a2e;font-weight:500;}
+.receipt-grand{margin-top:8px;padding-top:8px;border-top:1px solid #e8e0f0;}
+.receipt-grand .receipt-total-label{font-size:14px;font-weight:700;color:#1a1a2e;}
+.receipt-grand .receipt-total-value{font-size:18px;font-weight:700;color:#6b3fa0;}
+.receipt-note{margin-top:20px;padding:12px 16px;background:#f8f4ff;border-left:3px solid #c9a84c;font-size:12px;color:#4a4a6a;line-height:1.6;}
+.receipt-footer{text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid #e8e0f0;}
+.receipt-footer-logo{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#6b3fa0;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
+.receipt-footer p{font-size:10px;color:#9b9bbb;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.receipt-heart{color:#c9a84c;font-size:18px;margin:8px 0;}
+.receipt-empty{text-align:center;padding:80px 32px;color:#9b9bbb;}
+.receipt-empty .empty-icon{font-size:48px;margin-bottom:16px;}
+.receipt-empty p{font-size:13px;line-height:1.6;}
+@media print{.left{display:none!important;}.app{grid-template-columns:1fr;}.right{background:white;}.receipt{max-width:100%;}.success-bar{display:none!important;}}
+@media(max-width:800px){.app{grid-template-columns:1fr;}.left{border-right:none;border-bottom:1px solid var(--border);}.product-grid{grid-template-columns:repeat(2,1fr);}.custom-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<iframe name="sr_iframe" style="display:none;width:0;height:0;border:0;"></iframe>
+<div class="app">
+  <div class="left">
+    <div class="panel-title">Stack Room</div>
+    <div class="panel-sub">Order Receipt Generator</div>
+    <div class="section">
+      <div class="section-label">WhatsApp Details</div>
+      <div class="form-row">
+        <div class="field"><label>WhatsApp Name</label><input type="text" id="waName" placeholder="WA name" oninput="updateReceipt()"></div>
+        <div class="field"><label>WhatsApp Number</label><input type="text" id="waNumber" placeholder="09xx xxx xxxx" oninput="updateReceipt()"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Customer Information</div>
+      <div class="form-row">
+        <div class="field"><label>Customer Name</label><input type="text" id="custName" placeholder="Full name" oninput="updateReceipt()"></div>
+        <div class="field"><label>Order Date</label><input type="date" id="orderDate" oninput="updateReceipt()"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Contact Number</label><input type="text" id="custPhone" placeholder="09xx xxx xxxx" oninput="updateReceipt()"></div>
+        <div class="field"><label>Email (optional)</label><input type="text" id="custEmail" placeholder="email@example.com" oninput="updateReceipt()"></div>
+      </div>
+      <div class="form-row single">
+        <div class="field"><label>Shipping Address</label><input type="text" id="custAddress" placeholder="Complete address" oninput="updateReceipt()"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Shipping & Payment</div>
+      <div class="form-row">
+        <div class="field"><label>Courier</label>
+          <select id="shippingMethod" onchange="updateReceipt()">
+            <option value="Lalamove">Lalamove</option>
+            <option value="J&T Express">J&T Express</option>
+          </select>
+        </div>
+        <div class="field"><label>Admin Fee / ISF</label>
+          <input type="number" id="shippingFee" value="300" readonly style="background:#120d1a;color:#c9a84c;font-weight:600;cursor:not-allowed;opacity:0.8;">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Payment Method</label>
+          <select id="paymentMethod" onchange="updateReceipt()">
+            <option>GCash</option><option>Maya</option>
+            <option>Bank Transfer</option><option>Cash on Delivery</option><option>Credit Card</option>
+          </select>
+        </div>
+        <div class="field"><label>Payment Status</label>
+          <select id="paymentStatus" onchange="updateReceipt()">
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Partially Paid">Partially Paid</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Quick Add Products</div>
+      <div class="product-grid">
+        <button class="product-btn" onclick="addProduct('AHK-CU10 Peptide','10mg/vial',3000)"><div class="p-icon">&#128137;</div><div class="p-name">AHK-CU10</div><div class="p-price">&#8369;3,000</div></button>
+        <button class="product-btn" onclick="addProduct('PDRN Skinbooster','3ml/vial',3000)"><div class="p-icon">&#128300;</div><div class="p-name">PDRN Skinbooster</div><div class="p-price">&#8369;3,000</div></button>
+        <button class="product-btn" onclick="addProduct('SG04 Pink HA Essence','Single vial',3000)"><div class="p-icon">&#128167;</div><div class="p-name">SG04 Pink HA</div><div class="p-price">&#8369;3,000</div></button>
+        <button class="product-btn" onclick="addProduct('KS02 Exosome Lyophilized Powder','1 vial',3000)"><div class="p-icon">&#10024;</div><div class="p-name">KS02 Exosome</div><div class="p-price">&#8369;3,000</div></button>
+        <button class="product-btn" onclick="addProduct('SG01 Whitening Spot-Fading Skinbooster','5ml x 10 vials',3000)"><div class="p-icon">&#127775;</div><div class="p-name">SG01 Whitening</div><div class="p-price">&#8369;3,000</div></button>
+        <button class="product-btn" onclick="addProduct('Collagen Skinbooster','5ml x 10 vials',3000)"><div class="p-icon">&#128142;</div><div class="p-name">Collagen Boost</div><div class="p-price">&#8369;3,000</div></button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Add Custom Item</div>
+      <div class="custom-row">
+        <div class="field"><label>Item Name</label><input type="text" id="customName" placeholder="Product name"></div>
+        <div class="field"><label>Description</label><input type="text" id="customDesc" placeholder="Details"></div>
+        <div class="field"><label>Price</label><input type="number" id="customPrice" placeholder="0" min="0"></div>
+        <button class="btn btn-outline" onclick="addCustomItem()" style="height:40px;margin-top:auto;">+ Add</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Cart</div>
+      <div id="cartItems"><div class="empty-cart">No items yet</div></div>
+    </div>
+    <div class="section">
+      <div class="section-label">Order Note</div>
+      <div class="field"><textarea id="orderNote" rows="3" placeholder="e.g. Handle with care." oninput="updateReceipt()" style="resize:vertical;"></textarea></div>
+    </div>
+    <button id="saveBtn" class="btn btn-full" onclick="saveToSheet()" style="background:linear-gradient(135deg,#6b3fa0,#c9a84c);color:#fff;font-size:13px;letter-spacing:2px;">Save to Google Sheet</button>
+    <button class="btn btn-outline btn-full" onclick="window.print()" style="margin-top:8px;">Print Receipt</button>
+    <button class="btn btn-outline btn-full" onclick="clearAll()" style="margin-top:8px;">Clear All</button>
+  </div>
+  <div class="right">
+    <div id="successBar" class="success-bar">Order saved to Google Sheet!</div>
+    <div class="receipt" id="receiptPreview">
+      <div class="receipt-empty"><div class="empty-icon">&#129534;</div><p>Fill in the order details and add products to generate your receipt.</p></div>
+    </div>
+  </div>
+</div>
+<script>
+var SHEETS_URL='https://script.google.com/macros/s/AKfycby3pmKL2HKM8DjAOY_4DsIPicVWXfMVt6aJRJv6sKz0Cj4jCBMSjjuxGIL28JgQhuoa/exec';
+var cart=[];
+
+window.onload=function(){
+  var t=new Date();
+  document.getElementById('orderDate').value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  var s=sessionStorage.getItem('sr_cart');
+  if(s){try{cart=JSON.parse(s);sessionStorage.removeItem('sr_cart');}catch(e){}}
+  renderCart();updateReceipt();
+};
+
+function addProduct(name,desc,price){
+  for(var i=0;i<cart.length;i++){if(cart[i].name===name){cart[i].qty++;renderCart();updateReceipt();return;}}
+  cart.push({name:name,desc:desc,price:price,qty:1});
+  renderCart();updateReceipt();
+}
+
+function addCustomItem(){
+  var name=document.getElementById('customName').value.trim();
+  var desc=document.getElementById('customDesc').value.trim();
+  var price=parseFloat(document.getElementById('customPrice').value)||0;
+  if(!name){alert('Please enter an item name.');return;}
+  cart.push({name:name,desc:desc,price:price,qty:1});
+  document.getElementById('customName').value='';
+  document.getElementById('customDesc').value='';
+  document.getElementById('customPrice').value='';
+  renderCart();updateReceipt();
+}
+
+function changeQty(idx,delta){cart[idx].qty+=delta;if(cart[idx].qty<=0)cart.splice(idx,1);renderCart();updateReceipt();}
+function removeItem(idx){cart.splice(idx,1);renderCart();updateReceipt();}
+
+function renderCart(){
+  var el=document.getElementById('cartItems');
+  if(cart.length===0){el.innerHTML='<div class="empty-cart">No items yet</div>';return;}
+  var h='';
+  cart.forEach(function(item,i){
+    h+='<div class="cart-item"><div><div class="cart-item-name">'+item.name+'</div><div class="cart-item-sub">'+item.desc+'</div></div>'+
+    '<div class="qty-controls"><button class="qty-btn" onclick="changeQty('+i+',-1)">-</button><span class="qty-num">'+item.qty+'</span><button class="qty-btn" onclick="changeQty('+i+',1)">+</button></div>'+
+    '<div class="item-total">P'+fmt(item.price*item.qty)+'</div><button class="remove-btn" onclick="removeItem('+i+')">x</button></div>';
+  });
+  el.innerHTML=h;
+}
+
+function fmt(n){return Number(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function row(l,v){return '<div class="receipt-info-row"><span class="receipt-info-label">'+l+'</span><span class="receipt-info-value">'+v+'</span></div>';}
+
+function updateReceipt(){
+  var waName=document.getElementById('waName').value||'-';
+  var waNum=document.getElementById('waNumber').value||'-';
+  var dr=document.getElementById('orderDate').value;
+  var cn=document.getElementById('custName').value||'-';
+  var cp=document.getElementById('custPhone').value||'-';
+  var ce=document.getElementById('custEmail').value;
+  var ca=document.getElementById('custAddress').value||'-';
+  var sh=document.getElementById('shippingMethod').value;
+  var pm=document.getElementById('paymentMethod').value;
+  var ps=document.getElementById('paymentStatus').value;
+  var nt=document.getElementById('orderNote').value;
+  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var tot=sub+300;
+  var od='-';
+  if(dr){var p=dr.split('-');var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];od=m[parseInt(p[1])-1]+' '+p[2]+', '+p[0];}
+  var sc=ps==='Paid'?'#1a7a4a':ps==='Pending'?'#c0392b':'#E8A030';
+  var h='<div class="receipt-header"><div class="receipt-logo">STACK<span> ROOM</span></div><div class="receipt-tagline">Glow - Repair - Renew</div><div class="receipt-badge">Order Confirmation</div><br><div class="receipt-congrats">Hi '+cn+'! Your order has been received.</div><div class="receipt-order-id">WA: '+waName+' - '+waNum+' - '+od+'</div></div>';
+  h+='<div class="receipt-section"><div class="receipt-section-title">Customer Information</div>'+row('Name',cn)+row('Contact',cp)+(ce?row('Email',ce):'')+row('Ship to',ca)+'</div>';
+  if(cart.length>0){
+    h+='<div class="receipt-section"><div class="receipt-section-title">Order Items</div><table class="receipt-table"><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead><tbody>';
+    cart.forEach(function(item){h+='<tr><td><div class="td-name">'+item.name+'</div><div class="td-sub">'+item.desc+'</div></td><td style="text-align:center">'+item.qty+'</td><td style="text-align:right">P'+fmt(item.price)+'</td><td style="text-align:right">P'+fmt(item.price*item.qty)+'</td></tr>';});
+    h+='</tbody></table></div>';
+  }
+  h+='<div class="receipt-totals"><div class="receipt-total-row"><span class="receipt-total-label">Subtotal</span><span class="receipt-total-value">P'+fmt(sub)+'</span></div><div class="receipt-total-row"><span class="receipt-total-label">Admin Fee / ISF ('+sh+')</span><span class="receipt-total-value">P300.00</span></div><div class="receipt-grand receipt-total-row"><span class="receipt-total-label">TOTAL</span><span class="receipt-total-value">P'+fmt(tot)+'</span></div></div>';
+  h+='<div class="receipt-section" style="margin-top:20px;"><div class="receipt-section-title">Payment Details</div>'+row('Payment Method',pm)+'<div class="receipt-info-row"><span class="receipt-info-label">Payment Status</span><span style="font-size:12px;font-weight:600;color:'+sc+';">'+ps+'</span></div></div>';
+  if(nt)h+='<div class="receipt-note">Note: '+nt+'</div>';
+  h+='<div class="receipt-footer"><div class="receipt-heart">* * *</div><div class="receipt-footer-logo">Stack Room</div><p>Your Trusted Peptide Partner</p><p>Thank you for your order!</p><p style="margin-top:8px;">stackroom.ph@gmail.com</p></div>';
+  document.getElementById('receiptPreview').innerHTML=h;
+}
+
+function saveToSheet(){
+  var cn=document.getElementById('custName').value.trim();
+  if(!cn){alert('Please enter a customer name.');return;}
+  if(cart.length===0){alert('Please add at least one product.');return;}
+
+  var btn=document.getElementById('saveBtn');
+  btn.textContent='Saving...';
+  btn.disabled=true;
+
+  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+
+  var params={
+    date:document.getElementById('orderDate').value,
+    waName:document.getElementById('waName').value.trim(),
+    waNumber:document.getElementById('waNumber').value.trim(),
+    custName:cn,
+    custPhone:document.getElementById('custPhone').value.trim(),
+    custAddr:document.getElementById('custAddress').value.trim(),
+    shipping:document.getElementById('shippingMethod').value,
+    fee:300,
+    payment:document.getElementById('paymentMethod').value,
+    status:document.getElementById('paymentStatus').value,
+    items:cart.map(function(i){return i.name+' x'+i.qty;}).join(' | '),
+    subtotal:sub,
+    total:sub+300,
+    note:document.getElementById('orderNote').value.trim()
+  };
+
+  var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+  var url=SHEETS_URL+'?'+qs;
+
+  function done(){
+    btn.textContent='Saved!';
+    btn.style.background='#1a7a4a';
+    btn.disabled=false;
+    var bar=document.getElementById('successBar');
+    bar.classList.add('show');
+    setTimeout(function(){bar.classList.remove('show');btn.textContent='Save to Google Sheet';btn.style.background='linear-gradient(135deg,#6b3fa0,#c9a84c)';},4000);
+  }
+
+  // Primary: fetch no-cors
+  fetch(url,{method:'GET',mode:'no-cors'}).then(done).catch(function(){
+    // Fallback: form submit to iframe
+    var f=document.createElement('form');
+    f.method='POST';f.action=SHEETS_URL;f.target='sr_iframe';
+    Object.keys(params).forEach(function(k){
+      var inp=document.createElement('input');
+      inp.type='hidden';inp.name=k;inp.value=params[k];
+      f.appendChild(inp);
+    });
+    document.body.appendChild(f);f.submit();document.body.removeChild(f);
+    setTimeout(done,2000);
+  });
+}
+
+function clearAll(){
+  if(!confirm('Clear all?'))return;
+  cart=[];
+  ['waName','waNumber','custName','custPhone','custEmail','custAddress','orderNote'].forEach(function(id){document.getElementById(id).value='';});
+  renderCart();updateReceipt();
+}
+</script>
+</body>
+</html>
