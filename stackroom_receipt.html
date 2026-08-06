@@ -116,7 +116,7 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
       </div>
     </div>
     <div class="section">
-      <div class="section-label">Shipping & Payment</div>
+      <div class="section-label">Shipping and Payment</div>
       <div class="form-row">
         <div class="field"><label>Courier</label>
           <select id="shippingMethod" onchange="updateReceipt()">
@@ -147,12 +147,12 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
     <div class="section">
       <div class="section-label">Quick Add Products</div>
       <div class="product-grid">
-        <button class="product-btn" onclick="addProduct('AHK-CU10 Peptide','10mg/vial',3000)"><div class="p-icon">&#128137;</div><div class="p-name">AHK-CU10</div><div class="p-price">&#8369;3,000</div></button>
-        <button class="product-btn" onclick="addProduct('PDRN Skinbooster','3ml/vial',3000)"><div class="p-icon">&#128300;</div><div class="p-name">PDRN Skinbooster</div><div class="p-price">&#8369;3,000</div></button>
-        <button class="product-btn" onclick="addProduct('SG04 Pink HA Essence','Single vial',3000)"><div class="p-icon">&#128167;</div><div class="p-name">SG04 Pink HA</div><div class="p-price">&#8369;3,000</div></button>
-        <button class="product-btn" onclick="addProduct('KS02 Exosome Lyophilized Powder','1 vial',3000)"><div class="p-icon">&#10024;</div><div class="p-name">KS02 Exosome</div><div class="p-price">&#8369;3,000</div></button>
-        <button class="product-btn" onclick="addProduct('SG01 Whitening Spot-Fading Skinbooster','5ml x 10 vials',3000)"><div class="p-icon">&#127775;</div><div class="p-name">SG01 Whitening</div><div class="p-price">&#8369;3,000</div></button>
-        <button class="product-btn" onclick="addProduct('Collagen Skinbooster','5ml x 10 vials',3000)"><div class="p-icon">&#128142;</div><div class="p-name">Collagen Boost</div><div class="p-price">&#8369;3,000</div></button>
+        <button class="product-btn" onclick="addProduct('AHK-CU10 Peptide','10mg/vial',3000)"><div class="p-icon">&#128137;</div><div class="p-name">AHK-CU10</div><div class="p-price">P3,000</div></button>
+        <button class="product-btn" onclick="addProduct('PDRN Skinbooster','3ml/vial',3000)"><div class="p-icon">&#128300;</div><div class="p-name">PDRN Skinbooster</div><div class="p-price">P3,000</div></button>
+        <button class="product-btn" onclick="addProduct('SG04 Pink HA Essence','Single vial',3000)"><div class="p-icon">&#128167;</div><div class="p-name">SG04 Pink HA</div><div class="p-price">P3,000</div></button>
+        <button class="product-btn" onclick="addProduct('KS02 Exosome Lyophilized Powder','1 vial',3000)"><div class="p-icon">&#10024;</div><div class="p-name">KS02 Exosome</div><div class="p-price">P3,000</div></button>
+        <button class="product-btn" onclick="addProduct('SG01 Whitening Spot-Fading Skinbooster','5ml x 10 vials',3000)"><div class="p-icon">&#127775;</div><div class="p-name">SG01 Whitening</div><div class="p-price">P3,000</div></button>
+        <button class="product-btn" onclick="addProduct('Collagen Skinbooster','5ml x 10 vials',3000)"><div class="p-icon">&#128142;</div><div class="p-name">Collagen Boost</div><div class="p-price">P3,000</div></button>
       </div>
     </div>
     <div class="section">
@@ -177,7 +177,7 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
     <button class="btn btn-outline btn-full" onclick="clearAll()" style="margin-top:8px;">Clear All</button>
   </div>
   <div class="right">
-    <div id="successBar" class="success-bar">Order saved to Google Sheet!</div>
+    <div id="successBar" class="success-bar">Order saved to Google Sheet successfully!</div>
     <div class="receipt" id="receiptPreview">
       <div class="receipt-empty"><div class="empty-icon">&#129534;</div><p>Fill in the order details and add products to generate your receipt.</p></div>
     </div>
@@ -272,7 +272,6 @@ function saveToSheet(){
   btn.disabled=true;
 
   var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
-
   var params={
     date:document.getElementById('orderDate').value,
     waName:document.getElementById('waName').value.trim(),
@@ -290,9 +289,6 @@ function saveToSheet(){
     note:document.getElementById('orderNote').value.trim()
   };
 
-  var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-  var url=SHEETS_URL+'?'+qs;
-
   function done(){
     btn.textContent='Saved!';
     btn.style.background='#1a7a4a';
@@ -302,7 +298,6 @@ function saveToSheet(){
     setTimeout(function(){bar.classList.remove('show');btn.textContent='Save to Google Sheet';btn.style.background='linear-gradient(135deg,#6b3fa0,#c9a84c)';},4000);
   }
 
-  // Use form submit to iframe — most reliable across all browsers and mobile
   var f=document.createElement('form');
   f.method='GET';
   f.action=SHEETS_URL;
