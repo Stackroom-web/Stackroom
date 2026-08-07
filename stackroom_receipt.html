@@ -272,7 +272,6 @@ function saveToSheet(){
   btn.disabled=true;
 
   var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
-
   var params={
     date:document.getElementById('orderDate').value,
     waName:document.getElementById('waName').value.trim(),
@@ -290,41 +289,54 @@ function saveToSheet(){
     note:document.getElementById('orderNote').value.trim()
   };
 
-  var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-  var url=SHEETS_URL+'?'+qs;
-
-  function done(){
-    btn.textContent='Saved!';
-    btn.style.background='#1a7a4a';
-    btn.disabled=false;
-    var bar=document.getElementById('successBar');
-    bar.classList.add('show');
-    setTimeout(function(){bar.classList.remove('show');btn.textContent='Save to Google Sheet';btn.style.background='linear-gradient(135deg,#6b3fa0,#c9a84c)';},4000);
-  }
-
-  // Use form submit to iframe — most reliable across all browsers and mobile
-  // Build query string
   var qs=Object.keys(params).map(function(k){
     return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
   }).join('&');
   var fullURL=SHEETS_URL+'?'+qs;
 
-  // Method 1: Image ping — works on ALL devices including mobile
-  var img=new Image();
-  img.onload=function(){done();};
-  img.onerror=function(){
-    // Method 2: iframe form fallback
+  function done(){
+    btn.textContent='Saved!';
+    btn.style.background='#1a7a4a';
+    btn.disabled=false;
+    document.getElementById('successBar').classList.add('show');
+    setTimeout(function(){
+      document.getElementById('successBar').classList.remove('show');
+      btn.textContent='Save to Google Sheet';
+      btn.style.background='linear-gradient(135deg,#6b3fa0,#c9a84c)';
+    },4000);
+  }
+
+  // Try all methods
+  // Method 1: fetch
+  if(window.fetch){
+    fetch(fullURL,{method:'GET',mode:'no-cors'})
+      .then(function(){done();})
+      .catch(function(){tryForm();});
+  } else {
+    tryForm();
+  }
+
+  function tryForm(){
+    // Method 2: hidden form GET to iframe
     var f=document.createElement('form');
-    f.method='GET';f.action=SHEETS_URL;f.target='sr_iframe';
+    f.method='GET';
+    f.action=SHEETS_URL;
+    f.target='sr_iframe';
+    f.style.display='none';
     Object.keys(params).forEach(function(k){
       var inp=document.createElement('input');
-      inp.type='hidden';inp.name=k;inp.value=params[k];
+      inp.type='hidden';
+      inp.name=k;
+      inp.value=params[k];
       f.appendChild(inp);
     });
-    document.body.appendChild(f);f.submit();document.body.removeChild(f);
-    setTimeout(done,2000);
-  };
-  img.src=fullURL;
+    document.body.appendChild(f);
+    f.submit();
+    setTimeout(function(){
+      try{document.body.removeChild(f);}catch(e){}
+      done();
+    },2500);
+  }
 }
 
 function clearAll(){
